@@ -5,7 +5,6 @@ import io.selendroid.common.SelendroidCapabilities;
 import io.selendroid.standalone.SelendroidLauncher;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -16,26 +15,25 @@ import org.junit.runners.MethodSorters;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class OnibusSocialTest {
 	private static SelendroidLauncher selendroidServer = null;
 	private static WebDriver driver = null;
+	static WebDriverWait wait;
 	
 	@BeforeClass
 	public static void startSelendroidServer() throws Exception {
 		if (selendroidServer != null) {
 			selendroidServer.stopSelendroid();
 		}
-//		SelendroidConfiguration config = new SelendroidConfiguration();
-//		config.addSupportedApp("src/resources/OnibusSocial.apk");
-//		selendroidServer = new SelendroidLauncher(config);
-//		selendroidServer.launchSelendroid();
 		
 		SelendroidCapabilities caps = new SelendroidCapabilities("com.joaoemedeiros.onibussocial");
 		
 		driver = new SelendroidDriver(caps);
-		driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+		wait = new WebDriverWait(driver, 30);
 	}
 	
 	@AfterClass
@@ -51,22 +49,40 @@ public class OnibusSocialTest {
 	/** Verifica se o Spinner tem ônibus */
 	@Test
 	public void test1TemOnibusParaSelecionar() {
-		WebElement spinner = driver.findElement(By.tagName("Spinner"));
+		WebElement spinner = wait.until(ExpectedConditions.elementToBeClickable(By.tagName("Spinner")));
 		spinner.click();
 		
-		List<WebElement> elementosSpinner = driver.findElements(By.linkText("44/Santa Maria"));
-		Assert.assertNotEquals(0, elementosSpinner.size());
+		WebElement elementosSpinner = wait.until(ExpectedConditions.presenceOfElementLocated(By.linkText("44/Santa Maria")));
+		driver.navigate().back();
+		Assert.assertNotEquals(null, elementosSpinner);
 	}
 	
 	@Test
 	public void test2MudarAba() {
-		driver.findElement(By.xpath("(//TabView)[1]")).click();
-		WebElement texto = driver.findElement(By.id("section_label"));
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//TextView[@value='SER ACOMPANHADO']"))).click();
+		WebElement texto = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("section_label")));
 		
 		Assert.assertEquals("A partir do momento que você apertar o botão de iniciar compartilharemos a posição do ônibus "
 				+ "que você está atualmente com qualquer pessoa que esteja usando esse APP. Nenhuma informação sua será divulgada. "
 				+ "Não esqueça de manter o GPS e a conexão com a internet habilitados pois são essenciais para que o aplicativo funcione.", texto.getText());
 	}
-
-
+	
+	@Test
+	public void test3MenuSobre() {
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//ActionMenuView"))).click();
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("(//RelativeLayout)[1]"))).click();
+		WebElement imagem = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//ImageView[@id='imageView1']")));
+		
+		Assert.assertNotEquals(null, imagem);
+	}
+	
+	@Test 
+	public void test4MenuPedidos() {
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//ActionMenuView"))).click();
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("(//RelativeLayout)[2]"))).click();
+		WebElement text = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//TextView[@id='textView2']")));
+		
+		Assert.assertNotEquals(null, text);
+	}
+	
 }
